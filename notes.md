@@ -11,7 +11,7 @@ As part of `Deliverable ⓵ Development deployment: JWT Pizza`, start up the app
 | Login new user<br/>(t@jwt.com, pw: test)            |          login.tsx          |         [PUT] /api/auth         |      SELECT * FROM user WHERE email=? <br> SELECT * FROM userRole WHERE userId=?       |
 | Order pizza                                         |         menu.tsx           |         [GET] /api/order/menu         |       SELECT * FROM menu       |
 | Verify pizza                                        |         delivery.tsx           |         [POST] /api/order          |       INSERT INTO menu (title, description, image, price) VALUES (?, ?, ?, ?)       |
-| View profile page                                   |                    |        [GET] /api/order          |       SELECT * FROM user WHERE email=? <br> SELECT * FROM userRole WHERE userId=?       |
+| View profile page                                   |           dinerDashboard.tsx         |        [GET] /api/order          |       SELECT * FROM user WHERE email=? <br> SELECT * FROM userRole WHERE userId=?       |
 | View franchise<br/>(as diner)                       |          franchiseDashboard.tsx          |         [GET] /api/franchise/7          |      SELECT objectId FROM userRole WHERE role='franchisee' AND userId=? <br> SELECT id, name FROM franchise WHERE id in (${franchiseIds.join(',')})       |
 | Logout                                              |          logout.tsx          |         [DELETE]	/api/auth          |       DELETE FROM auth WHERE token=?       |
 | View About page                                     |          about.tsx          |         none          |       none       |
