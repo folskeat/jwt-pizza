@@ -6,6 +6,10 @@ on:
       - main
   workflow_dispatch:
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello GitHub Actions"
   build:
     name: Build
     runs-on: ubuntu-latest
