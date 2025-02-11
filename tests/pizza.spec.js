@@ -7,6 +7,7 @@ test("home page", async ({ page }) => {
 });
 
 test("purchase with login", async ({ page }) => {
+  // Get menu mock function
   await page.route("*/**/api/order/menu", async (route) => {
     const menuRes = [
       {
@@ -28,6 +29,7 @@ test("purchase with login", async ({ page }) => {
     await route.fulfill({ json: menuRes });
   });
 
+  // Get franchise mock function
   await page.route("*/**/api/franchise", async (route) => {
     const franchiseRes = [
       {
@@ -46,6 +48,7 @@ test("purchase with login", async ({ page }) => {
     await route.fulfill({ json: franchiseRes });
   });
 
+  // Login mock function
   await page.route("*/**/api/auth", async (route) => {
     const loginReq = { email: "d@jwt.com", password: "a" };
     const loginRes = {
@@ -62,6 +65,7 @@ test("purchase with login", async ({ page }) => {
     await route.fulfill({ json: loginRes });
   });
 
+  // Order mock function
   await page.route("*/**/api/order", async (route) => {
     const orderReq = {
       items: [
@@ -87,6 +91,8 @@ test("purchase with login", async ({ page }) => {
     expect(route.request().postDataJSON()).toMatchObject(orderReq);
     await route.fulfill({ json: orderRes });
   });
+
+  //Do some tests using the mock function
 
   await page.goto("/");
 
@@ -120,21 +126,127 @@ test("purchase with login", async ({ page }) => {
   // Check balance
   await expect(page.getByText("0.008")).toBeVisible();
 });
-test("register", async ({ page }) => {
-  //LET'S MAKE THIS INTO A MEANINGFUL TEST!!!!
+
+test("create franchise", async ({ page }) => {
+  //TODO: MOCK FUNCTIONS, ADD ASSERTIONS
   await page.goto("http://localhost:5173/");
-  await page.getByRole("link", { name: "Register" }).click();
-  await page.getByRole("textbox", { name: "Full name" }).fill("joe");
-  await page.getByRole("textbox", { name: "Full name" }).press("Tab");
-  await page
-    .getByRole("textbox", { name: "Email address" })
-    .fill("joe@email.com");
+  await page.getByRole("link", { name: "Login" }).click();
+  await page.getByRole("textbox", { name: "Email address" }).fill("a@jwt.com");
   await page.getByRole("textbox", { name: "Email address" }).press("Tab");
-  await page.getByRole("textbox", { name: "Password" }).fill("password");
-  await page.getByRole("button", { name: "Register" }).click();
-  await page.getByRole("textbox", { name: "Full name" }).click();
+  await page.getByRole("textbox", { name: "Password" }).fill("admin");
+  await page.getByRole("textbox", { name: "Password" }).press("Enter");
+  await page.getByRole("button", { name: "Login" }).click();
+  await page.getByRole("link", { name: "Admin" }).click();
+  await page.getByRole("button", { name: "Add Franchise" }).click();
+  await page.getByRole("textbox", { name: "franchise name" }).click();
+  await page
+    .getByRole("textbox", { name: "franchise name" })
+    .fill("Funky Town");
+  await page.getByRole("textbox", { name: "franchisee admin email" }).click();
+  await page.getByRole("textbox", { name: "franchisee admin email" }).click();
+  await page
+    .getByRole("textbox", { name: "franchisee admin email" })
+    .fill("bob@email.com");
+  await page.getByRole("button", { name: "Create" }).click();
+  await page.getByRole("button", { name: "Create" }).click();
+  await page.getByRole("textbox", { name: "franchisee admin email" }).click();
+  await page
+    .getByRole("textbox", { name: "franchisee admin email" })
+    .fill("a@jwt.com");
+  await page.getByRole("button", { name: "Create" }).click();
+  await page
+    .getByRole("row", { name: "Funky Town 常用名字 Close" })
+    .getByRole("button")
+    .click();
+  await page.getByRole("button", { name: "Close" }).click();
+  await page.getByRole("link", { name: "Logout" }).click();
 });
 
-test("create franchise", async ({ page }) => {});
-
 test("create store", async ({ page }) => {});
+
+test("register and logout", async ({ page }) => {
+  // Mock register
+  await page.route("*/**/api/auth", async (route) => {
+    if (route.request().method() === "POST") {
+      const regReq = {
+        name: "joe fullmer",
+        email: "jf@m.com",
+        password: "ilikedk",
+      };
+      const regRes = {
+        user: {
+          name: "joe fullmer",
+          email: "jf@m.com",
+          roles: [
+            {
+              role: "diner",
+            },
+          ],
+          id: 5,
+        },
+        token: "qwertyu",
+      };
+      expect(route.request().method()).toBe("POST");
+      expect(route.request().postDataJSON()).toMatchObject(regReq);
+      await route.fulfill({ json: regRes });
+    } else if (route.request().method() === "DELETE") {
+      // Mock the logout method
+      const logoutRes = { message: "logout successful" };
+      console.log(route.request().headers()["authorization"]); // It's lowercase for some reason
+      expect(route.request().headers()["authorization"]).toBe("Bearer qwertyu");
+      await route.fulfill({ json: logoutRes });
+    }
+  });
+
+  // Mock fetch to order page
+  await page.route("*/**/api/order", async (route) => {
+    const orderRes = {
+      dinerId: 5,
+      orders: [],
+      page: 1,
+    };
+    expect(route.request().method()).toBe("GET");
+    await route.fulfill({ json: orderRes });
+  });
+
+  // Mock fetch to menu page
+  await page.route("*/**/api/order/menu", async (route) => {
+    const menuRes = [
+      {
+        id: 1,
+        title: "Veggie",
+        image: "pizza1.png",
+        price: 0.0038,
+        description: "A garden of delight",
+      },
+      {
+        id: 2,
+        title: "Pepperoni",
+        image: "pizza2.png",
+        price: 0.0042,
+        description: "Spicy treat",
+      },
+    ];
+    expect(route.request().method()).toBe("GET");
+    await route.fulfill({ json: menuRes });
+  });
+
+  await page.goto("/");
+  await page.getByRole("link", { name: "Register" }).click();
+  await page.getByRole("textbox", { name: "Full name" }).fill("joe fullmer");
+  await page.getByRole("textbox", { name: "Email address" }).click();
+  await page.getByRole("textbox", { name: "Email address" }).fill("jf@m.com");
+  await page.getByRole("textbox", { name: "Password" }).click();
+  await page.getByRole("textbox", { name: "Password" }).fill("ilikedk");
+  await page.getByRole("button", { name: "Register" }).click();
+  await page.getByRole("link", { name: "jf" }).click();
+  await expect(page.locator("h2")).toContainText("Your pizza kitchen");
+  await expect(page.getByRole("main")).toContainText(
+    "How have you lived this long without having a pizza?"
+  );
+  await page.getByRole("link", { name: "Buy one" }).click();
+  await page.getByRole("link", { name: "Logout" }).click();
+});
+
+//Mock register temp
+// Use assertions or waits
