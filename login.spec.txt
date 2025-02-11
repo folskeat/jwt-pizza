@@ -1,0 +1,23 @@
+/*
+test('home page', async )
+
+# expect pageXOffset.getByRole('main').toBe
+.toContainText
+await page.getByRole('link', { name: 'Login' }).click();
+await page.getByRole('button', {})
+
+test('login', async ({ page }) => {
+  await page.route('*/**/api/auth', async (route) => {
+    if (route.request().method() === 'PUT') {
+      const loginReq = { email: 'd@jwt.com', password: 'a'};
+      const loginReq = {user: {id: 3, name: 'Chen', email: 'd@jwt.com', roles: []}}
+      expect(route.request().method()).toBe('PUT');
+      expect(route.request().postDataJSON()).toMatchObject(loginReq);
+    } else if (route.request().method() === 'DELETE') {
+      expect(route.request().headers()['Authorization']).toBe('Bearer abcdef');
+    }
+  })
+})
+
+
+Try doing some sort of test to check for put or delete?
