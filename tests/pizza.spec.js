@@ -34,7 +34,6 @@ test("register and logout", async ({ page }) => {
     } else if (route.request().method() === "DELETE") {
       // Mock the logout method
       const logoutRes = { message: "logout successful" };
-      console.log(route.request().headers()["authorization"]); // It's lowercase for some reason
       expect(route.request().headers()["authorization"]).toBe("Bearer qwertyu");
       await route.fulfill({ json: logoutRes });
     }
@@ -238,7 +237,6 @@ test("create and delete franchise", async ({ page }) => {
     } else if (route.request().method() === "DELETE") {
       //Logout
       const logoutRes = { message: "logout successful" };
-      console.log(route.request().headers()["authorization"]); // It's lowercase for some reason
       expect(route.request().headers()["authorization"]).toBe("Bearer fazbear");
       await route.fulfill({ json: logoutRes });
     }
@@ -372,7 +370,6 @@ test("create and delete franchise", async ({ page }) => {
 });
 
 test("empty franchise dashboard", async ({ page }) => {
-  //TODO - Make assertions
   // Mock login
   await page.route("*/**/api/auth", async (route) => {
     if (route.request().method() === "PUT") {
@@ -399,7 +396,6 @@ test("empty franchise dashboard", async ({ page }) => {
     } else if (route.request().method() === "DELETE") {
       //Logout
       const logoutRes = { message: "logout successful" };
-      console.log(route.request().headers()["authorization"]); // It's lowercase for some reason
       expect(route.request().headers()["authorization"]).toBe("Bearer fazbear");
       await route.fulfill({ json: logoutRes });
     }
@@ -418,12 +414,15 @@ test("empty franchise dashboard", async ({ page }) => {
     .click();
 
   // Empty franchise dashboard page
-  //DEBUG HERE
-  await expect(page.locator("h2")).toContainText(
-    "So you want a piece of the pie?"
-  );
+  await expect(page.getByText("If you are already a franchisee, please"))
+    .toBeVisible;
+  const element = page.getByText("If you are already a franchisee, please");
+  await expect(element).toHaveClass("my-3 text-sm text-yellow-700");
+
   await page.getByRole("link", { name: "login", exact: true }).click();
   await expect(page.locator("h2")).toContainText("Welcome back");
+
+  // Usual login, maybe unnecessary to be honest...
   await page.getByRole("textbox", { name: "Email address" }).click();
   await page.getByRole("textbox", { name: "Email address" }).fill("a@jwt.com");
   await page.getByRole("textbox", { name: "Email address" }).press("Tab");
@@ -433,7 +432,6 @@ test("empty franchise dashboard", async ({ page }) => {
 });
 
 test("create and delete store", async ({ page }) => {
-  //TODO - Add some assertions
   // Mock login and logout
   await page.route("*/**/api/auth", async (route) => {
     if (route.request().method() === "PUT") {
@@ -460,7 +458,6 @@ test("create and delete store", async ({ page }) => {
     } else if (route.request().method() === "DELETE") {
       //Logout
       const logoutRes = { message: "logout successful" };
-      console.log(route.request().headers()["authorization"]); // It's lowercase for some reason
       expect(route.request().headers()["authorization"]).toBe("Bearer fazbear");
       await route.fulfill({ json: logoutRes });
     }
@@ -537,12 +534,19 @@ test("create and delete store", async ({ page }) => {
 
   // Go to franchise page
   await page.getByRole("link", { name: "Franchise" }).click();
+
   await page.getByRole("button", { name: "Create store" }).click();
+  await expect(page.locator("h2")).toContainText("Create store");
+
+  // Create a new store
   await page.getByRole("textbox", { name: "store name" }).click();
   await page.getByRole("textbox", { name: "store name" }).fill("not taco bell");
   await page.getByRole("button", { name: "Create" }).click();
   await page.getByRole("cell", { name: "taco bell" }).click();
+  await expect(page.locator("tbody")).toContainText("taco bell");
+
+  // Close the store
   await page.getByRole("button", { name: "Close" }).click();
-  await page.getByRole("button", { name: "Close" }).click();
+  await expect(page.locator("h2")).toContainText("Sorry to see you go");
   await page.getByRole("link", { name: "Logout" }).click();
 });
